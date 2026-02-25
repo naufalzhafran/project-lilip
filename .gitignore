@@ -1,0 +1,15 @@
+# Dependencies
+node_modules/
+
+# Build
+frontend/dist/
+
+# AI Agents
+.agents/
+.agent/
+.claude/
+.gemini/
+skills-lock.json
+
+# Cache
+.ruff_cache/
