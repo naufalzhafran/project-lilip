@@ -1,8 +1,15 @@
 import { useState, useEffect } from "react";
-import { ChevronRight } from "lucide-react";
 import { Outlet, useMatch, useNavigate } from "react-router-dom";
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { Separator } from "@/components/ui/separator";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
 import AppSidebar from "@/components/AppSidebar";
 import { getEmployee } from "@/api/employees";
 import type { Employee } from "@/types";
@@ -25,24 +32,7 @@ export default function Layout() {
     getEmployee(id).then(setBreadcrumbEmployee).catch(() => setBreadcrumbEmployee(null));
   }, [detailMatch?.params.id]);
 
-  const isRecruitmentPage = recruitmentsListMatch || recruitmentsNewMatch || recruitmentsEditMatch;
-
-  const getBreadcrumbLabel = () => {
-    if (detailMatch) return "Employees";
-    if (recruitmentsNewMatch) return "Add Recruitment";
-    if (recruitmentsEditMatch) return "Edit Recruitment";
-    if (isRecruitmentPage) return "Recruitments";
-    if (dashboardMatch) return "Employees";
-    return "Employees";
-  };
-
-  const getBreadcrumbLink = () => {
-    if (detailMatch) return "/dashboard";
-    if (recruitmentsNewMatch || recruitmentsEditMatch) return "/recruitments";
-    if (isRecruitmentPage) return "/recruitments";
-    if (dashboardMatch) return "/dashboard";
-    return "/dashboard";
-  };
+  const isRecruitmentSubpage = recruitmentsNewMatch || recruitmentsEditMatch;
 
   return (
     <SidebarProvider>
@@ -52,24 +42,68 @@ export default function Layout() {
         <header className="flex h-14 shrink-0 items-center gap-2 border-b bg-background px-4">
           <SidebarTrigger className="-ml-1" />
           <Separator orientation="vertical" className="mr-2 h-4" />
-          <nav className="flex items-center gap-1 text-sm min-w-0">
-            <span
-              className={
-                recruitmentsNewMatch || recruitmentsEditMatch
-                  ? "text-muted-foreground hover:text-foreground cursor-pointer transition-colors"
-                  : "font-medium text-foreground"
-              }
-              onClick={() => navigate(getBreadcrumbLink())}
-            >
-              {getBreadcrumbLabel()}
-            </span>
-            {!!detailMatch && breadcrumbEmployee && (
-              <>
-                <ChevronRight className="h-3.5 w-3.5 text-muted-foreground/50 shrink-0" />
-                <span className="font-medium text-foreground truncate">{breadcrumbEmployee.name}</span>
-              </>
-            )}
-          </nav>
+
+          <Breadcrumb>
+            <BreadcrumbList>
+              {/* Employees section */}
+              {(dashboardMatch || detailMatch) && (
+                <>
+                  {detailMatch ? (
+                    <>
+                      <BreadcrumbItem>
+                        <BreadcrumbLink
+                          className="cursor-pointer"
+                          onClick={() => navigate("/dashboard")}
+                        >
+                          Employees
+                        </BreadcrumbLink>
+                      </BreadcrumbItem>
+                      {breadcrumbEmployee && (
+                        <>
+                          <BreadcrumbSeparator />
+                          <BreadcrumbItem>
+                            <BreadcrumbPage>{breadcrumbEmployee.name}</BreadcrumbPage>
+                          </BreadcrumbItem>
+                        </>
+                      )}
+                    </>
+                  ) : (
+                    <BreadcrumbItem>
+                      <BreadcrumbPage>Employees</BreadcrumbPage>
+                    </BreadcrumbItem>
+                  )}
+                </>
+              )}
+
+              {/* Recruitments section */}
+              {(recruitmentsListMatch || isRecruitmentSubpage) && (
+                <>
+                  {isRecruitmentSubpage ? (
+                    <>
+                      <BreadcrumbItem>
+                        <BreadcrumbLink
+                          className="cursor-pointer"
+                          onClick={() => navigate("/recruitments")}
+                        >
+                          Recruitments
+                        </BreadcrumbLink>
+                      </BreadcrumbItem>
+                      <BreadcrumbSeparator />
+                      <BreadcrumbItem>
+                        <BreadcrumbPage>
+                          {recruitmentsNewMatch ? "Add Recruitment" : "Edit Recruitment"}
+                        </BreadcrumbPage>
+                      </BreadcrumbItem>
+                    </>
+                  ) : (
+                    <BreadcrumbItem>
+                      <BreadcrumbPage>Recruitments</BreadcrumbPage>
+                    </BreadcrumbItem>
+                  )}
+                </>
+              )}
+            </BreadcrumbList>
+          </Breadcrumb>
         </header>
 
         {/* Page content */}

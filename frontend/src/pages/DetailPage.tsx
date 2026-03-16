@@ -2,13 +2,13 @@ import { useState, useEffect, useMemo } from "react";
 import { ArrowLeft, Plus, Pencil, Trash2, CheckCircle2, XCircle, TrendingUp, FileText } from "lucide-react";
 import { useParams, useNavigate } from "react-router-dom";
 import { getEmployee } from "@/api/employees";
-import { getRecruitments, createRecruitment, updateRecruitment, deleteRecruitment } from "@/api/recruitments";
+import { getRecruitments, updateRecruitment, deleteRecruitment } from "@/api/recruitments";
 import { RoleBadge, StatusBadge } from "@/components/Badge";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import RecruitmentForm from "./RecruitmentForm";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -23,6 +23,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import type { Employee, RecruitmentRecord, RecruitmentFormData } from "@/types";
 import type React from "react";
 
@@ -91,23 +93,36 @@ export default function DetailPage() {
   }
 
   if (employeeLoading || !employee) {
-    return <div className="p-8 text-sm text-muted-foreground">Loading…</div>;
+    return (
+      <div className="p-6 flex flex-col gap-6">
+        <Skeleton className="h-8 w-32" />
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <Skeleton className="h-40 rounded-lg" />
+          <div className="lg:col-span-2 grid grid-cols-2 sm:grid-cols-4 gap-4">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <Skeleton key={i} className="h-24 rounded-lg" />
+            ))}
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (
     <div className="p-6 flex flex-col gap-6">
       {/* Back */}
-      <Button variant="ghost" size="sm" className="w-fit -ml-2 gap-1.5 text-muted-foreground" onClick={() => navigate("/employees")}>
-        <ArrowLeft className="h-4 w-4" /> Employees
+      <Button variant="ghost" size="sm" className="w-fit -ml-2 text-muted-foreground" onClick={() => navigate("/employees")}>
+        <ArrowLeft data-icon="inline-start" />
+        Employees
       </Button>
 
       {/* Profile + Stats row */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Profile card */}
-        <Card className="bg-background lg:col-span-1">
+        <Card className="lg:col-span-1">
           <CardContent className="p-5 flex flex-col gap-4 h-full">
             <div className="flex items-center gap-4">
-              <Avatar className="h-14 w-14 shrink-0">
+              <Avatar className="size-14 shrink-0">
                 <AvatarFallback className="bg-primary/10 text-primary text-xl font-extrabold">
                   {employee.name.charAt(0).toUpperCase()}
                 </AvatarFallback>
@@ -129,10 +144,10 @@ export default function DetailPage() {
 
         {/* Stat cards */}
         <div className="lg:col-span-2 grid grid-cols-2 sm:grid-cols-4 gap-4">
-          <Card className="bg-background">
+          <Card>
             <CardContent className="p-5 flex items-center gap-3">
               <div className="shrink-0 p-2.5 rounded-lg bg-blue-50 dark:bg-blue-950">
-                <FileText className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                <FileText className="size-5 text-blue-600 dark:text-blue-400" />
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Records</p>
@@ -140,10 +155,21 @@ export default function DetailPage() {
               </div>
             </CardContent>
           </Card>
-          <Card className="bg-background">
+          <Card>
+            <CardContent className="p-5 flex items-center gap-3">
+              <div className="shrink-0 p-2.5 rounded-lg bg-green-50 dark:bg-green-950">
+                <CheckCircle2 className="size-5 text-green-600 dark:text-green-400" />
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">On Time</p>
+                <p className="text-2xl font-bold tracking-tight">{stats.onTime}</p>
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
             <CardContent className="p-5 flex items-center gap-3">
               <div className="shrink-0 p-2.5 rounded-lg bg-red-50 dark:bg-red-950">
-                <XCircle className="h-5 w-5 text-red-500 dark:text-red-400" />
+                <XCircle className="size-5 text-red-500 dark:text-red-400" />
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Late</p>
@@ -151,10 +177,10 @@ export default function DetailPage() {
               </div>
             </CardContent>
           </Card>
-          <Card className="bg-background">
+          <Card>
             <CardContent className="p-5 flex items-center gap-3">
               <div className="shrink-0 p-2.5 rounded-lg bg-amber-50 dark:bg-amber-950">
-                <TrendingUp className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+                <TrendingUp className="size-5 text-amber-600 dark:text-amber-400" />
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">On-Time Rate</p>
@@ -174,8 +200,9 @@ export default function DetailPage() {
             <h3 className="font-semibold text-sm">Recruitment Records</h3>
             <p className="text-xs text-muted-foreground">{records.length} record{records.length !== 1 ? "s" : ""}</p>
           </div>
-          <Button onClick={() => navigate(`/recruitments/new?employeeId=${employee.id}`)} size="sm" className="gap-1.5">
-            <Plus className="h-4 w-4" /> Add Record
+          <Button onClick={() => navigate(`/recruitments/new?employeeId=${employee.id}`)} size="sm">
+            <Plus data-icon="inline-start" />
+            Add Record
           </Button>
         </div>
         <div className="overflow-x-auto">
@@ -193,11 +220,17 @@ export default function DetailPage() {
             </TableHeader>
             <TableBody>
               {loading ? (
-                <TableRow>
-                  <TableCell colSpan={7} className="h-24 text-center text-muted-foreground">
-                    Loading...
-                  </TableCell>
-                </TableRow>
+                Array.from({ length: 4 }).map((_, i) => (
+                  <TableRow key={i}>
+                    <TableCell className="text-center"><Skeleton className="h-3.5 w-4 mx-auto" /></TableCell>
+                    <TableCell><Skeleton className="h-3.5 w-32" /></TableCell>
+                    <TableCell><Skeleton className="h-5 w-24 rounded-md" /></TableCell>
+                    <TableCell className="hidden lg:table-cell"><Skeleton className="h-3.5 w-28" /></TableCell>
+                    <TableCell className="hidden lg:table-cell"><Skeleton className="h-3.5 w-28" /></TableCell>
+                    <TableCell className="hidden lg:table-cell"><Skeleton className="h-5 w-12 rounded-full" /></TableCell>
+                    <TableCell><div className="flex justify-end gap-1"><Skeleton className="size-8 rounded-md" /><Skeleton className="size-8 rounded-md" /></div></TableCell>
+                  </TableRow>
+                ))
               ) : records.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={7} className="h-24 text-center text-muted-foreground">
@@ -212,9 +245,7 @@ export default function DetailPage() {
                     </TableCell>
                     <TableCell className="py-2.5 font-medium">{rec.candidate_name}</TableCell>
                     <TableCell className="py-2.5">
-                      <span className="inline-block rounded-md border bg-muted/50 px-2 py-0.5 text-xs">
-                        {rec.candidate_role}
-                      </span>
+                      <Badge variant="outline">{rec.candidate_role}</Badge>
                     </TableCell>
                     <TableCell className="hidden lg:table-cell py-2.5 text-muted-foreground text-sm whitespace-nowrap">
                       {fmtDT(rec.interview_datetime)}
@@ -225,33 +256,26 @@ export default function DetailPage() {
                     <TableCell className="hidden lg:table-cell py-2.5">
                       {rec.is_ontime === null || rec.is_ontime === undefined ? (
                         <span className="text-muted-foreground">—</span>
+                      ) : rec.is_ontime ? (
+                        <Badge variant="outline" className="border-emerald-200 bg-emerald-50 text-emerald-700">Yes</Badge>
                       ) : (
-                        <span
-                          className={
-                            rec.is_ontime
-                              ? "inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
-                              : "inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400"
-                          }
-                        >
-                          {rec.is_ontime ? "Yes" : "No"}
-                        </span>
+                        <Badge variant="outline" className="border-red-200 bg-red-50 text-red-700">No</Badge>
                       )}
                     </TableCell>
                     <TableCell className="py-2.5 text-right">
                       <div className="flex items-center justify-end gap-1">
                         <Button
-                          size="icon" variant="ghost"
-                          className="h-8 w-8"
+                          size="icon-sm" variant="ghost"
                           onClick={() => { setEditTarget(rec); setModal("edit"); }}
                         >
-                          <Pencil className="h-3.5 w-3.5" />
+                          <Pencil />
                         </Button>
                         <Button
-                          size="icon" variant="ghost"
-                          className="h-8 w-8 hover:text-destructive"
+                          size="icon-sm" variant="ghost"
+                          className="hover:text-destructive"
                           onClick={() => setDeleteTarget(rec)}
                         >
-                          <Trash2 className="h-3.5 w-3.5" />
+                          <Trash2 />
                         </Button>
                       </div>
                     </TableCell>

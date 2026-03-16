@@ -12,6 +12,8 @@ import {
 } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
 import { Upload, Loader2, Calendar as CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
 import { parseRecruitmentPDF } from "@/lib/pdf-parser";
@@ -80,7 +82,7 @@ function DateTimePicker({ label, dateValue, timeValue, onDateChange, onTimeChang
   };
 
   return (
-    <div className="grid gap-1.5">
+    <div className="flex flex-col gap-1.5">
       <Label>{label}</Label>
       <div className="flex gap-2">
         <Popover open={open} onOpenChange={setOpen}>
@@ -89,7 +91,7 @@ function DateTimePicker({ label, dateValue, timeValue, onDateChange, onTimeChang
               variant="outline"
               className="flex-1 justify-start text-left font-normal"
             >
-              <CalendarIcon className="mr-2 h-4 w-4" />
+              <CalendarIcon data-icon="inline-start" />
               {date ? format(date, "PPP") : "Pick date"}
             </Button>
           </PopoverTrigger>
@@ -159,12 +161,12 @@ export default function RecruitmentForm({ initial, employees, onSubmit, onCancel
     setError("");
     try {
       const parsed = await parseRecruitmentPDF(file);
-      
+
       const interviewDate = parsed.interview_datetime ? parsed.interview_datetime.slice(0, 10) : "";
       const interviewTime = parsed.interview_datetime ? parsed.interview_datetime.slice(11, 16) : "";
       const reportDate = parsed.report_sent_datetime ? parsed.report_sent_datetime.slice(0, 10) : "";
       const reportTime = parsed.report_sent_datetime ? parsed.report_sent_datetime.slice(11, 16) : "";
-      
+
       setForm((f) => ({
         ...f,
         candidate_name: parsed.candidate_name || f.candidate_name,
@@ -207,7 +209,7 @@ export default function RecruitmentForm({ initial, employees, onSubmit, onCancel
     try {
       const interviewDatetime = combineDateTime(form.interview_datetime, form.interview_time);
       const reportDatetime = combineDateTime(form.report_sent_datetime, form.report_sent_time);
-      
+
       if (initial) {
         await onSubmit({
           candidate_name: form.candidate_name,
@@ -232,9 +234,9 @@ export default function RecruitmentForm({ initial, employees, onSubmit, onCancel
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-4 pt-1">
       {error && (
-        <p className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive font-medium">
-          {error}
-        </p>
+        <Alert variant="destructive">
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
       )}
 
       {!initial && (
@@ -251,12 +253,12 @@ export default function RecruitmentForm({ initial, employees, onSubmit, onCancel
             variant="outline"
             onClick={() => fileInputRef.current?.click()}
             disabled={parsingPdf}
-            className="w-full gap-2"
+            className="w-full"
           >
             {parsingPdf ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
+              <Loader2 data-icon="inline-start" className="animate-spin" />
             ) : (
-              <Upload className="h-4 w-4" />
+              <Upload data-icon="inline-start" />
             )}
             {parsingPdf ? "Parsing PDF..." : "Upload PDF to auto-fill"}
           </Button>
@@ -264,7 +266,7 @@ export default function RecruitmentForm({ initial, employees, onSubmit, onCancel
       )}
 
       {!initial && !!employees?.length && (
-        <div className="grid gap-1.5">
+        <div className="flex flex-col gap-1.5">
           <Label htmlFor="rec-employee">Employee</Label>
           <Select value={form.employee_id} onValueChange={(v) => set("employee_id", v)}>
             <SelectTrigger id="rec-employee">
@@ -280,30 +282,41 @@ export default function RecruitmentForm({ initial, employees, onSubmit, onCancel
       )}
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-        <div className="grid gap-1.5">
+        <div className="flex flex-col gap-1.5">
           <Label htmlFor="rec-name">Candidate Name</Label>
-          <Input id="rec-name" required value={form.candidate_name} onChange={(e) => set("candidate_name", e.target.value)} placeholder="Full name" />
+          <Input
+            id="rec-name"
+            required
+            value={form.candidate_name}
+            onChange={(e) => set("candidate_name", e.target.value)}
+            placeholder="Full name"
+          />
         </div>
-        <div className="grid gap-1.5">
+        <div className="flex flex-col gap-1.5">
           <Label htmlFor="rec-role">Candidate Role</Label>
-          <Input 
-            id="rec-role" 
-            required 
-            value={form.candidate_role} 
-            onChange={(e) => set("candidate_role", e.target.value)} 
-            placeholder={form.company_name ? `e.g. ${form.company_name}` : "e.g. Software Engineer"} 
+          <Input
+            id="rec-role"
+            required
+            value={form.candidate_role}
+            onChange={(e) => set("candidate_role", e.target.value)}
+            placeholder={form.company_name ? `e.g. ${form.company_name}` : "e.g. Software Engineer"}
           />
         </div>
       </div>
 
       {form.company_name && (
-        <div className="grid gap-1.5">
+        <div className="flex flex-col gap-1.5">
           <Label htmlFor="rec-company">Company</Label>
-          <Input id="rec-company" value={form.company_name} onChange={(e) => set("company_name", e.target.value)} placeholder="Company name" />
+          <Input
+            id="rec-company"
+            value={form.company_name}
+            onChange={(e) => set("company_name", e.target.value)}
+            placeholder="Company name"
+          />
         </div>
       )}
 
-      <div className="space-y-4">
+      <div className="flex flex-col gap-4">
         <DateTimePicker
           label="Interview Date & Time"
           dateValue={form.interview_datetime}
@@ -323,15 +336,11 @@ export default function RecruitmentForm({ initial, employees, onSubmit, onCancel
       {isOntime !== null && (
         <div className="flex items-center gap-2 rounded-md border px-3 py-2 bg-muted/30">
           <span className="text-sm text-muted-foreground">On Time:</span>
-          <span
-            className={
-              isOntime
-                ? "inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
-                : "inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400"
-            }
-          >
-            {isOntime ? "Yes" : "No"}
-          </span>
+          {isOntime ? (
+            <Badge variant="outline" className="border-emerald-200 bg-emerald-50 text-emerald-700">Yes</Badge>
+          ) : (
+            <Badge variant="outline" className="border-red-200 bg-red-50 text-red-700">No</Badge>
+          )}
         </div>
       )}
 

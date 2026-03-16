@@ -22,7 +22,10 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Badge } from "@/components/ui/badge";
 import type { RecruitmentWithEmployee, Employee } from "@/types";
 
 export default function RecruitmentPage() {
@@ -89,17 +92,18 @@ export default function RecruitmentPage() {
             {recruitments.length} record{recruitments.length !== 1 ? "s" : ""}
           </p>
         </div>
-        <Button onClick={() => navigate("/recruitments/new")} className="gap-1.5">
-          <Plus className="h-4 w-4" /> Add Recruitment
+        <Button onClick={() => navigate("/recruitments/new")}>
+          <Plus data-icon="inline-start" />
+          Add Recruitment
         </Button>
       </div>
 
       {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="bg-background">
+        <Card>
           <CardContent className="p-5 flex items-center gap-4">
             <div className="shrink-0 p-2.5 rounded-lg bg-blue-50 dark:bg-blue-950">
-              <FileText className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+              <FileText className="size-5 text-blue-600 dark:text-blue-400" />
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Total Records</p>
@@ -107,10 +111,10 @@ export default function RecruitmentPage() {
             </div>
           </CardContent>
         </Card>
-        <Card className="bg-background">
+        <Card>
           <CardContent className="p-5 flex items-center gap-4">
             <div className="shrink-0 p-2.5 rounded-lg bg-green-50 dark:bg-green-950">
-              <CheckCircle2 className="h-5 w-5 text-green-600 dark:text-green-400" />
+              <CheckCircle2 className="size-5 text-green-600 dark:text-green-400" />
             </div>
             <div>
               <p className="text-sm text-muted-foreground">On Time</p>
@@ -118,10 +122,10 @@ export default function RecruitmentPage() {
             </div>
           </CardContent>
         </Card>
-        <Card className="bg-background">
+        <Card>
           <CardContent className="p-5 flex items-center gap-4">
             <div className="shrink-0 p-2.5 rounded-lg bg-red-50 dark:bg-red-950">
-              <XCircle className="h-5 w-5 text-red-500 dark:text-red-400" />
+              <XCircle className="size-5 text-red-500 dark:text-red-400" />
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Late</p>
@@ -129,10 +133,10 @@ export default function RecruitmentPage() {
             </div>
           </CardContent>
         </Card>
-        <Card className="bg-background">
+        <Card>
           <CardContent className="p-5 flex items-center gap-4">
             <div className="shrink-0 p-2.5 rounded-lg bg-amber-50 dark:bg-amber-950">
-              <TrendingUp className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+              <TrendingUp className="size-5 text-amber-600 dark:text-amber-400" />
             </div>
             <div>
               <p className="text-sm text-muted-foreground">On-Time Rate</p>
@@ -145,9 +149,9 @@ export default function RecruitmentPage() {
       </div>
 
       {fetchError && (
-        <p className="rounded-md bg-destructive/10 px-4 py-3 text-sm text-destructive font-medium">
-          {fetchError}
-        </p>
+        <Alert variant="destructive">
+          <AlertDescription>{fetchError}</AlertDescription>
+        </Alert>
       )}
 
       {/* Table */}
@@ -184,15 +188,26 @@ export default function RecruitmentPage() {
             </TableHeader>
             <TableBody>
               {loading ? (
-                <TableRow>
-                  <TableCell colSpan={7} className="h-24 text-center text-muted-foreground">
-                    Loading...
-                  </TableCell>
-                </TableRow>
+                Array.from({ length: 5 }).map((_, i) => (
+                  <TableRow key={i}>
+                    <TableCell className="py-3">
+                      <div className="flex items-center gap-3">
+                        <Skeleton className="size-8 rounded-full shrink-0" />
+                        <Skeleton className="h-3.5 w-28" />
+                      </div>
+                    </TableCell>
+                    <TableCell><Skeleton className="h-3.5 w-32" /></TableCell>
+                    <TableCell><Skeleton className="h-3.5 w-24" /></TableCell>
+                    <TableCell className="hidden md:table-cell"><Skeleton className="h-3.5 w-28" /></TableCell>
+                    <TableCell className="hidden md:table-cell"><Skeleton className="h-3.5 w-28" /></TableCell>
+                    <TableCell className="hidden sm:table-cell"><Skeleton className="h-5 w-12 rounded-full" /></TableCell>
+                    <TableCell><div className="flex justify-end gap-1"><Skeleton className="size-8 rounded-md" /><Skeleton className="size-8 rounded-md" /></div></TableCell>
+                  </TableRow>
+                ))
               ) : filtered.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={7} className="h-24 text-center text-muted-foreground">
-                    No data found
+                    No records found
                   </TableCell>
                 </TableRow>
               ) : (
@@ -200,7 +215,7 @@ export default function RecruitmentPage() {
                   <TableRow key={rec.id}>
                     <TableCell className="py-2.5">
                       <div className="flex items-center gap-3">
-                        <Avatar className="h-8 w-8">
+                        <Avatar className="size-8">
                           <AvatarFallback className="text-xs">{rec.candidate_name.charAt(0).toUpperCase()}</AvatarFallback>
                         </Avatar>
                         <p className="font-medium">{rec.candidate_name}</p>
@@ -209,52 +224,45 @@ export default function RecruitmentPage() {
                     <TableCell className="py-2.5 text-muted-foreground">{rec.candidate_role}</TableCell>
                     <TableCell className="py-2.5">
                       <div className="flex items-center gap-2 text-muted-foreground">
-                        <User className="h-3.5 w-3.5" />
+                        <User className="size-3.5 shrink-0" />
                         <span>{rec.employee_name}</span>
                       </div>
                     </TableCell>
                     <TableCell className="hidden md:table-cell py-2.5 text-muted-foreground text-sm">
                       {rec.interview_datetime
                         ? new Date(rec.interview_datetime).toLocaleString("en-GB", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })
-                        : "-"}
+                        : "—"}
                     </TableCell>
                     <TableCell className="hidden md:table-cell py-2.5 text-muted-foreground text-sm">
                       {rec.report_sent_datetime
                         ? new Date(rec.report_sent_datetime).toLocaleString("en-GB", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })
-                        : "-"}
+                        : "—"}
                     </TableCell>
                     <TableCell className="hidden sm:table-cell py-2.5">
                       {rec.is_ontime === null || rec.is_ontime === undefined ? (
                         <span className="text-muted-foreground">—</span>
+                      ) : rec.is_ontime ? (
+                        <Badge variant="outline" className="border-emerald-200 bg-emerald-50 text-emerald-700">Yes</Badge>
                       ) : (
-                        <span
-                          className={
-                            rec.is_ontime
-                              ? "inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
-                              : "inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400"
-                          }
-                        >
-                          {rec.is_ontime ? "Yes" : "No"}
-                        </span>
+                        <Badge variant="outline" className="border-red-200 bg-red-50 text-red-700">No</Badge>
                       )}
                     </TableCell>
                     <TableCell className="py-2.5 text-right">
                       <div className="flex items-center justify-end gap-1">
                         <Button
-                          size="icon"
+                          size="icon-sm"
                           variant="ghost"
-                          className="h-8 w-8"
                           onClick={() => navigate(`/recruitments/${rec.id}/edit`)}
                         >
-                          <Pencil className="h-3.5 w-3.5" />
+                          <Pencil />
                         </Button>
                         <Button
-                          size="icon"
+                          size="icon-sm"
                           variant="ghost"
-                          className="h-8 w-8 hover:text-destructive"
+                          className="hover:text-destructive"
                           onClick={() => setDeleteTarget(rec)}
                         >
-                          <Trash2 className="h-3.5 w-3.5" />
+                          <Trash2 />
                         </Button>
                       </div>
                     </TableCell>

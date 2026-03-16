@@ -9,6 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import type { Employee, EmployeeFormData } from "@/types";
 
 interface EmployeeFormProps {
@@ -46,23 +47,36 @@ export default function EmployeeForm({ initial, onSubmit, onCancel, loading }: E
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-4 pt-1">
       {error && (
-        <p className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive font-medium">
-          {error}
-        </p>
+        <Alert variant="destructive">
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
       )}
 
-      <div className="grid gap-1.5">
+      <div className="flex flex-col gap-1.5">
         <Label htmlFor="emp-name">Full Name</Label>
-        <Input id="emp-name" required value={form.name} onChange={(e) => set("name", e.target.value)} placeholder="e.g. Alice Johnson" />
+        <Input
+          id="emp-name"
+          required
+          value={form.name}
+          onChange={(e) => set("name", e.target.value)}
+          placeholder="e.g. Alice Johnson"
+        />
       </div>
 
-      <div className="grid gap-1.5">
+      <div className="flex flex-col gap-1.5">
         <Label htmlFor="emp-email">Email Address</Label>
-        <Input id="emp-email" required type="email" value={form.email} onChange={(e) => set("email", e.target.value)} placeholder="alice@company.com" />
+        <Input
+          id="emp-email"
+          required
+          type="email"
+          value={form.email}
+          onChange={(e) => set("email", e.target.value)}
+          placeholder="alice@company.com"
+        />
       </div>
 
       <div className="grid grid-cols-2 gap-3">
-        <div className="grid gap-1.5">
+        <div className="flex flex-col gap-1.5">
           <Label>Role</Label>
           <Select value={form.role} onValueChange={(v) => set("role", v as EmployeeFormData["role"])}>
             <SelectTrigger><SelectValue /></SelectTrigger>
@@ -73,7 +87,7 @@ export default function EmployeeForm({ initial, onSubmit, onCancel, loading }: E
             </SelectContent>
           </Select>
         </div>
-        <div className="grid gap-1.5">
+        <div className="flex flex-col gap-1.5">
           <Label>Status</Label>
           <Select value={form.status} onValueChange={(v) => set("status", v as EmployeeFormData["status"])}>
             <SelectTrigger><SelectValue /></SelectTrigger>

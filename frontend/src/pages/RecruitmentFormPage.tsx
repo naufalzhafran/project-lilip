@@ -13,12 +13,15 @@ import {
 } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Upload, Loader2, Calendar as CalendarIcon, ArrowLeft, FileText } from "lucide-react";
 import { format } from "date-fns";
 import { parseRecruitmentPDF } from "@/lib/pdf-parser";
 import { getEmployees } from "@/api/employees";
-import { getRecruitmentById, createRecruitment, updateRecruitment, deleteRecruitment } from "@/api/recruitments";
-import type { Employee, RecruitmentFormData, RecruitmentWithEmployee } from "@/types";
+import { getRecruitmentById, createRecruitment, updateRecruitment } from "@/api/recruitments";
+import type { Employee, RecruitmentFormData } from "@/types";
 
 interface FormState {
   candidate_name: string;
@@ -68,7 +71,7 @@ function DateTimePicker({ label, dateValue, timeValue, onDateChange, onTimeChang
   };
 
   return (
-    <div className="grid gap-1.5">
+    <div className="flex flex-col gap-1.5">
       <Label>{label}</Label>
       <div className="flex gap-2">
         <Popover open={open} onOpenChange={setOpen}>
@@ -77,7 +80,7 @@ function DateTimePicker({ label, dateValue, timeValue, onDateChange, onTimeChang
               variant="outline"
               className="flex-1 justify-start text-left font-normal"
             >
-              <CalendarIcon className="mr-2 h-4 w-4" />
+              <CalendarIcon data-icon="inline-start" />
               {date ? format(date, "PPP") : "Pick date"}
             </Button>
           </PopoverTrigger>
@@ -113,9 +116,8 @@ export default function RecruitmentFormPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [parsingPdf, setParsingPdf] = useState(false);
-  const [pdfFile, setPdfFile] = useState<File | null>(null);
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
-  
+
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [form, setForm] = useState<FormState>({
@@ -148,7 +150,7 @@ export default function RecruitmentFormPage() {
             employee_id: String(rec.employee_id),
           });
         }
-      } catch (err) {
+      } catch {
         setError("Failed to load data");
       } finally {
         setLoading(false);
@@ -172,18 +174,17 @@ export default function RecruitmentFormPage() {
 
     const url = URL.createObjectURL(file);
     setPdfUrl(url);
-    setPdfFile(file);
 
     setParsingPdf(true);
     setError("");
     try {
       const parsed = await parseRecruitmentPDF(file);
-      
+
       const interviewDate = parsed.interview_datetime ? parsed.interview_datetime.slice(0, 10) : "";
       const interviewTime = parsed.interview_datetime ? parsed.interview_datetime.slice(11, 16) : "";
       const reportDate = parsed.report_sent_datetime ? parsed.report_sent_datetime.slice(0, 10) : "";
       const reportTime = parsed.report_sent_datetime ? parsed.report_sent_datetime.slice(11, 16) : "";
-      
+
       setForm((f) => ({
         ...f,
         candidate_name: parsed.candidate_name || f.candidate_name,
@@ -223,7 +224,7 @@ export default function RecruitmentFormPage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
-    
+
     const interviewDatetime = combineDateTime(form.interview_datetime, form.interview_time);
     const reportDatetime = combineDateTime(form.report_sent_datetime, form.report_sent_time);
 
@@ -235,14 +236,14 @@ export default function RecruitmentFormPage() {
           candidate_role: form.candidate_role,
           interview_datetime: interviewDatetime,
           report_sent_datetime: reportDatetime,
-        });
+        } as RecruitmentFormData);
       } else {
         await createRecruitment(Number(form.employee_id), {
           candidate_name: form.candidate_name,
           candidate_role: form.candidate_role,
           interview_datetime: interviewDatetime,
           report_sent_datetime: reportDatetime,
-        });
+        } as RecruitmentFormData);
       }
       navigate("/recruitments");
     } catch (err) {
@@ -254,8 +255,19 @@ export default function RecruitmentFormPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-full">
-        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      <div className="flex h-full">
+        <div className="flex-1 p-6">
+          <div className="max-w-xl mx-auto flex flex-col gap-6">
+            <Skeleton className="h-8 w-48" />
+            <Skeleton className="h-9 w-full" />
+            <div className="grid grid-cols-2 gap-4">
+              <Skeleton className="h-16" />
+              <Skeleton className="h-16" />
+            </div>
+            <Skeleton className="h-16" />
+            <Skeleton className="h-16" />
+          </div>
+        </div>
       </div>
     );
   }
@@ -264,28 +276,28 @@ export default function RecruitmentFormPage() {
     <div className="flex h-full">
       {/* Left side - Form */}
       <div className="flex-1 p-6 overflow-auto">
-        <div className="max-w-xl mx-auto">
+        <div className="max-w-xl mx-auto flex flex-col gap-6">
           <Button
             variant="ghost"
-            className="mb-4 -ml-2"
+            className="-ml-2 w-fit"
             onClick={() => navigate("/recruitments")}
           >
-            <ArrowLeft className="h-4 w-4 mr-2" />
+            <ArrowLeft data-icon="inline-start" />
             Back to Recruitments
           </Button>
 
-          <h1 className="text-xl font-bold mb-6">
+          <h1 className="text-xl font-bold">
             {isEdit ? "Edit Recruitment" : "Add Recruitment"}
           </h1>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} className="flex flex-col gap-5">
             {error && (
-              <p className="rounded-md bg-destructive/10 px-4 py-3 text-sm text-destructive font-medium">
-                {error}
-              </p>
+              <Alert variant="destructive">
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
             )}
 
-            <>
+            <div>
               <input
                 type="file"
                 ref={fileInputRef}
@@ -298,19 +310,19 @@ export default function RecruitmentFormPage() {
                 variant="outline"
                 onClick={() => fileInputRef.current?.click()}
                 disabled={parsingPdf}
-                className="w-full gap-2"
+                className="w-full"
               >
                 {parsingPdf ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <Loader2 data-icon="inline-start" className="animate-spin" />
                 ) : (
-                  <Upload className="h-4 w-4" />
+                  <Upload data-icon="inline-start" />
                 )}
                 {parsingPdf ? "Parsing PDF..." : "Upload PDF to auto-fill"}
               </Button>
-            </>
+            </div>
 
             {!isEdit && (
-              <div className="grid gap-1.5">
+              <div className="flex flex-col gap-1.5">
                 <Label htmlFor="rec-employee">Employee</Label>
                 <Select value={form.employee_id} onValueChange={(v) => set("employee_id", v)}>
                   <SelectTrigger id="rec-employee">
@@ -326,41 +338,41 @@ export default function RecruitmentFormPage() {
             )}
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <div className="grid gap-1.5">
+              <div className="flex flex-col gap-1.5">
                 <Label htmlFor="rec-name">Candidate Name</Label>
-                <Input 
-                  id="rec-name" 
-                  required 
-                  value={form.candidate_name} 
-                  onChange={(e) => set("candidate_name", e.target.value)} 
-                  placeholder="Full name" 
+                <Input
+                  id="rec-name"
+                  required
+                  value={form.candidate_name}
+                  onChange={(e) => set("candidate_name", e.target.value)}
+                  placeholder="Full name"
                 />
               </div>
-              <div className="grid gap-1.5">
+              <div className="flex flex-col gap-1.5">
                 <Label htmlFor="rec-role">Candidate Role</Label>
-                <Input 
-                  id="rec-role" 
-                  required 
-                  value={form.candidate_role} 
-                  onChange={(e) => set("candidate_role", e.target.value)} 
-                  placeholder="e.g. Software Engineer" 
+                <Input
+                  id="rec-role"
+                  required
+                  value={form.candidate_role}
+                  onChange={(e) => set("candidate_role", e.target.value)}
+                  placeholder="e.g. Software Engineer"
                 />
               </div>
             </div>
 
             {form.company_name && (
-              <div className="grid gap-1.5">
+              <div className="flex flex-col gap-1.5">
                 <Label htmlFor="rec-company">Company</Label>
-                <Input 
-                  id="rec-company" 
-                  value={form.company_name} 
-                  onChange={(e) => set("company_name", e.target.value)} 
-                  placeholder="Company name" 
+                <Input
+                  id="rec-company"
+                  value={form.company_name}
+                  onChange={(e) => set("company_name", e.target.value)}
+                  placeholder="Company name"
                 />
               </div>
             )}
 
-            <div className="space-y-4">
+            <div className="flex flex-col gap-4">
               <DateTimePicker
                 label="Interview Date & Time"
                 dateValue={form.interview_datetime}
@@ -380,15 +392,11 @@ export default function RecruitmentFormPage() {
             {isOntime !== null && (
               <div className="flex items-center gap-2 rounded-md border px-3 py-2.5 bg-muted/30">
                 <span className="text-sm text-muted-foreground">On Time:</span>
-                <span
-                  className={
-                    isOntime
-                      ? "inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
-                      : "inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400"
-                  }
-                >
-                  {isOntime ? "Yes" : "No"}
-                </span>
+                {isOntime ? (
+                  <Badge variant="outline" className="border-emerald-200 bg-emerald-50 text-emerald-700">Yes</Badge>
+                ) : (
+                  <Badge variant="outline" className="border-red-200 bg-red-50 text-red-700">No</Badge>
+                )}
               </div>
             )}
 
@@ -405,7 +413,7 @@ export default function RecruitmentFormPage() {
       </div>
 
       {/* Right side - PDF Viewer */}
-      <div className="w-1/2 flex flex-col">
+      <div className="w-1/2 border-l flex flex-col">
         {pdfUrl ? (
           <div className="flex-1">
             <iframe
@@ -416,8 +424,8 @@ export default function RecruitmentFormPage() {
           </div>
         ) : (
           <div className="flex-1 flex items-center justify-center bg-muted/10">
-            <div className="text-center text-muted-foreground">
-              <FileText className="h-12 w-12 mx-auto mb-3 opacity-30" />
+            <div className="text-center text-muted-foreground flex flex-col items-center gap-3">
+              <FileText className="size-12 opacity-30" />
               <p className="text-sm">Upload a PDF to preview</p>
             </div>
           </div>

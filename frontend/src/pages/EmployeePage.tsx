@@ -29,7 +29,9 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Skeleton } from "@/components/ui/skeleton";
 import type { Employee, EmployeeFormData } from "@/types";
 
 export default function EmployeePage() {
@@ -113,17 +115,18 @@ export default function EmployeePage() {
             {employees.length} team member{employees.length !== 1 ? "s" : ""}
           </p>
         </div>
-        <Button onClick={() => setModal("add")} className="gap-1.5">
-          <Plus className="h-4 w-4" /> Add Employee
+        <Button onClick={() => setModal("add")}>
+          <Plus data-icon="inline-start" />
+          Add Employee
         </Button>
       </div>
 
       {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="bg-background">
+        <Card>
           <CardContent className="p-5 flex items-center gap-4">
             <div className="shrink-0 p-2.5 rounded-lg bg-blue-50 dark:bg-blue-950">
-              <Users className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+              <Users className="size-5 text-blue-600 dark:text-blue-400" />
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Total Employees</p>
@@ -131,10 +134,10 @@ export default function EmployeePage() {
             </div>
           </CardContent>
         </Card>
-        <Card className="bg-background">
+        <Card>
           <CardContent className="p-5 flex items-center gap-4">
             <div className="shrink-0 p-2.5 rounded-lg bg-green-50 dark:bg-green-950">
-              <UserCheck className="h-5 w-5 text-green-600 dark:text-green-400" />
+              <UserCheck className="size-5 text-green-600 dark:text-green-400" />
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Active</p>
@@ -142,10 +145,10 @@ export default function EmployeePage() {
             </div>
           </CardContent>
         </Card>
-        <Card className="bg-background">
+        <Card>
           <CardContent className="p-5 flex items-center gap-4">
             <div className="shrink-0 p-2.5 rounded-lg bg-slate-100 dark:bg-slate-800">
-              <UserMinus className="h-5 w-5 text-slate-500 dark:text-slate-400" />
+              <UserMinus className="size-5 text-slate-500 dark:text-slate-400" />
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Inactive</p>
@@ -153,10 +156,10 @@ export default function EmployeePage() {
             </div>
           </CardContent>
         </Card>
-        <Card className="bg-background">
+        <Card>
           <CardContent className="p-5 flex items-center gap-4">
             <div className="shrink-0 p-2.5 rounded-lg bg-violet-50 dark:bg-violet-950">
-              <Briefcase className="h-5 w-5 text-violet-600 dark:text-violet-400" />
+              <Briefcase className="size-5 text-violet-600 dark:text-violet-400" />
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Recruitment Support</p>
@@ -167,9 +170,9 @@ export default function EmployeePage() {
       </div>
 
       {fetchError && (
-        <p className="rounded-md bg-destructive/10 px-4 py-3 text-sm text-destructive font-medium">
-          {fetchError}
-        </p>
+        <Alert variant="destructive">
+          <AlertDescription>{fetchError}</AlertDescription>
+        </Alert>
       )}
 
       {/* Table */}
@@ -212,15 +215,27 @@ export default function EmployeePage() {
             </TableHeader>
             <TableBody>
               {loading ? (
-                <TableRow>
-                  <TableCell colSpan={5} className="h-24 text-center text-muted-foreground">
-                    Loading...
-                  </TableCell>
-                </TableRow>
+                Array.from({ length: 4 }).map((_, i) => (
+                  <TableRow key={i}>
+                    <TableCell className="py-3">
+                      <div className="flex items-center gap-3">
+                        <Skeleton className="size-8 rounded-full shrink-0" />
+                        <div className="flex flex-col gap-1.5">
+                          <Skeleton className="h-3.5 w-28" />
+                          <Skeleton className="h-3 w-40" />
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell><Skeleton className="h-5 w-32 rounded-full" /></TableCell>
+                    <TableCell><Skeleton className="h-5 w-16 rounded-full" /></TableCell>
+                    <TableCell className="hidden md:table-cell"><Skeleton className="h-3.5 w-24" /></TableCell>
+                    <TableCell><div className="flex justify-end gap-1"><Skeleton className="size-8 rounded-md" /><Skeleton className="size-8 rounded-md" /></div></TableCell>
+                  </TableRow>
+                ))
               ) : filtered.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={5} className="h-24 text-center text-muted-foreground">
-                    No data found
+                    No employees found
                   </TableCell>
                 </TableRow>
               ) : (
@@ -232,7 +247,7 @@ export default function EmployeePage() {
                   >
                     <TableCell className="py-2.5">
                       <div className="flex items-center gap-3">
-                        <Avatar className="h-8 w-8">
+                        <Avatar className="size-8">
                           <AvatarFallback className="text-xs">{emp.name.charAt(0).toUpperCase()}</AvatarFallback>
                         </Avatar>
                         <div>
@@ -252,27 +267,26 @@ export default function EmployeePage() {
                           <Button
                             size="sm"
                             variant="outline"
-                            className="h-8 gap-1"
                             onClick={() => navigate(`/employees/${emp.id}`)}
                           >
-                            View <ChevronRight className="h-3.5 w-3.5" />
+                            View
+                            <ChevronRight data-icon="inline-end" />
                           </Button>
                         )}
                         <Button
-                          size="icon"
+                          size="icon-sm"
                           variant="ghost"
-                          className="h-8 w-8"
                           onClick={() => { setEditTarget(emp); setModal("edit"); }}
                         >
-                          <Pencil className="h-3.5 w-3.5" />
+                          <Pencil />
                         </Button>
                         <Button
-                          size="icon"
+                          size="icon-sm"
                           variant="ghost"
-                          className="h-8 w-8 hover:text-destructive"
+                          className="hover:text-destructive"
                           onClick={() => setDeleteTarget(emp)}
                         >
-                          <Trash2 className="h-3.5 w-3.5" />
+                          <Trash2 />
                         </Button>
                       </div>
                     </TableCell>
