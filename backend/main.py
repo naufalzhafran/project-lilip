@@ -161,6 +161,18 @@ def create_recruitment(
     return rec
 
 
+@app.get("/recruitments/{recruitment_id}", response_model=models.RecruitmentResponse)
+def get_recruitment(recruitment_id: int, db: Session = Depends(get_db)):
+    rec = (
+        db.query(models.RecruitmentData)
+        .filter(models.RecruitmentData.id == recruitment_id)
+        .first()
+    )
+    if not rec:
+        raise HTTPException(status_code=404, detail="Recruitment record not found")
+    return rec
+
+
 @app.put("/recruitments/{recruitment_id}", response_model=models.RecruitmentResponse)
 def update_recruitment(
     recruitment_id: int,

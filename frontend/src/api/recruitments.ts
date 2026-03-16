@@ -15,6 +15,8 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
 
 export const getRecruitments = (employeeId: number): Promise<RecruitmentRecord[]> =>
   request<RecruitmentRecord[]>(`/employees/${employeeId}/recruitments`);
+export const getRecruitmentById = (id: number): Promise<RecruitmentRecord> =>
+  request<RecruitmentRecord>(`/recruitments/${id}`);
 export const getAllRecruitments = (): Promise<RecruitmentWithEmployee[]> =>
   request<RecruitmentWithEmployee[]>(`/recruitments`);
 export const createRecruitment = (employeeId: number, body: RecruitmentFormData): Promise<RecruitmentRecord> =>

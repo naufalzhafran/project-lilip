@@ -17,7 +17,7 @@ import { Upload, Loader2, Calendar as CalendarIcon, ArrowLeft, FileText } from "
 import { format } from "date-fns";
 import { parseRecruitmentPDF } from "@/lib/pdf-parser";
 import { getEmployees } from "@/api/employees";
-import { getRecruitments, createRecruitment, updateRecruitment, deleteRecruitment } from "@/api/recruitments";
+import { getRecruitmentById, createRecruitment, updateRecruitment, deleteRecruitment } from "@/api/recruitments";
 import type { Employee, RecruitmentFormData, RecruitmentWithEmployee } from "@/types";
 
 interface FormState {
@@ -136,20 +136,17 @@ export default function RecruitmentFormPage() {
         setEmployees(empData);
 
         if (isEdit && id) {
-          const recData = await getRecruitments(Number(id));
-          if (recData.length > 0) {
-            const rec = recData[0];
-            setForm({
-              candidate_name: rec.candidate_name,
-              candidate_role: rec.candidate_role,
-              company_name: "",
-              interview_datetime: toInput(rec.interview_datetime),
-              interview_time: toTimeInput(rec.interview_datetime),
-              report_sent_datetime: toInput(rec.report_sent_datetime),
-              report_sent_time: toTimeInput(rec.report_sent_datetime),
-              employee_id: String(rec.employee_id),
-            });
-          }
+          const rec = await getRecruitmentById(Number(id));
+          setForm({
+            candidate_name: rec.candidate_name,
+            candidate_role: rec.candidate_role,
+            company_name: "",
+            interview_datetime: toInput(rec.interview_datetime),
+            interview_time: toTimeInput(rec.interview_datetime),
+            report_sent_datetime: toInput(rec.report_sent_datetime),
+            report_sent_time: toTimeInput(rec.report_sent_datetime),
+            employee_id: String(rec.employee_id),
+          });
         }
       } catch (err) {
         setError("Failed to load data");
@@ -288,31 +285,29 @@ export default function RecruitmentFormPage() {
               </p>
             )}
 
-            {!isEdit && (
-              <>
-                <input
-                  type="file"
-                  ref={fileInputRef}
-                  accept=".pdf"
-                  onChange={handlePdfUpload}
-                  className="hidden"
-                />
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => fileInputRef.current?.click()}
-                  disabled={parsingPdf}
-                  className="w-full gap-2"
-                >
-                  {parsingPdf ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <Upload className="h-4 w-4" />
-                  )}
-                  {parsingPdf ? "Parsing PDF..." : "Upload PDF to auto-fill"}
-                </Button>
-              </>
-            )}
+            <>
+              <input
+                type="file"
+                ref={fileInputRef}
+                accept=".pdf"
+                onChange={handlePdfUpload}
+                className="hidden"
+              />
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={parsingPdf}
+                className="w-full gap-2"
+              >
+                {parsingPdf ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Upload className="h-4 w-4" />
+                )}
+                {parsingPdf ? "Parsing PDF..." : "Upload PDF to auto-fill"}
+              </Button>
+            </>
 
             {!isEdit && (
               <div className="grid gap-1.5">
